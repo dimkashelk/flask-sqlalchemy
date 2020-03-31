@@ -2,7 +2,7 @@ from flask_wtf import FlaskForm
 from flask_login import LoginManager, login_user, current_user
 from flask import Flask, render_template, redirect, request, abort
 from wtforms import *
-from data import db_session, users, jobs
+from data import db_session, users, jobs, departments
 from wtforms.validators import DataRequired
 from wtforms.fields.html5 import EmailField
 
@@ -23,6 +23,14 @@ class JobForm(FlaskForm):
     work_size = StringField('Количество часов для выполнения', validators=[DataRequired()])
     collaborators = StringField('Сотрудники (перечисление через запятую)', validators=[DataRequired()])
     is_finished = BooleanField('Закончена работа', default=0)
+    add = SubmitField('Сохранить')
+
+
+class DepForm(FlaskForm):
+    title = StringField('Описание', validators=[DataRequired()])
+    chief = IntegerField('Начальник', validators=[DataRequired()])
+    members = StringField('Сотрудники (перечисление через запятую)', validators=[DataRequired()])
+    email = EmailField('Почта')
     add = SubmitField('Сохранить')
 
 
@@ -53,7 +61,6 @@ def login():
 
 @app.route('/')
 def work_log():
-    db_session.global_init('db/blogs.sqlite')
     session = db_session.create_session()
     return render_template('prof.html', peoples=session.query(users.User),
                            jobs=session.query(jobs.Jobs))
@@ -115,18 +122,100 @@ def edit_news(id):
 
 
 @app.route('/job_delete/<int:id>', methods=['GET', 'POST'])
-def news_delete(id):
+def job_delete(id):
     session = db_session.create_session()
     job = session.query(jobs.Jobs).filter(jobs.Jobs.id == id).first()
     if job:
-        if job.add_by == current_user.id or current_user.id == 1:
-            session.delete(job)
-            session.commit()
+        if current_user.__name__ is not None:
+            if job.add_by == current_user.id or current_user.id == 1:
+                session.delete(job)
+                session.commit()
+            else:
+                abort(403)
         else:
             abort(403)
     else:
         abort(404)
     return redirect('/')
+
+
+@app.route('/departments')
+def department():
+    session = db_session.create_session()
+    print(*session.query(departments.Departments))
+    return render_template('department.html', departments=session.query(departments.Departments),
+                           peoples=session.query(users.User))
+
+
+@app.route('/department_delete/<int:id>', methods=['GET', 'POST'])
+def dep_delete(id):
+    session = db_session.create_session()
+    job = session.query(departments.Departments).filter(departments.Departments.id == id).first()
+    if job:
+        if current_user.__name__ is not None:
+            if job.add_by == current_user.id or current_user.id == 1:
+                session.delete(job)
+                session.commit()
+            else:
+                abort(403)
+        else:
+            abort(403)
+    else:
+        abort(404)
+    return redirect('/')
+
+
+@app.route('/editing_department/<int:id>', methods=['GET', 'POST'])
+def edit_dep(id):
+    form = DepForm()
+    if request.method == "GET":
+        session = db_session.create_session()
+        job = session.query(departments.Departments).filter(departments.Departments.id == id).first()
+        if job:
+            form.title = job.title
+            form.chief = job.chief
+            form.members = job.members
+            form.email = job.email
+        else:
+            abort(404)
+    if form.validate_on_submit():
+        session = db_session.create_session()
+        if current_user.__name__ is None:
+            job = session.query(departments.Departments).filter(departments.Departments.add_by == 1,
+                                                                departments.Departments.id == id).first()
+        else:
+            job = session.query(departments.Departments).filter(((departments.Departments.add_by == 1) |
+                                                                 (departments.Departments.add_by == current_user.id)),
+                                                                departments.Departments.id == id).first()
+        if job:
+            job.title = form.title
+            job.chief = form.chief
+            job.members = form.members
+            job.email = form.email
+            session.commit()
+            return redirect('/')
+        else:
+            abort(404)
+    return render_template('add_department.html', form=form)
+
+
+@app.route('/add_departments')
+def add_dep():
+    form = DepForm()
+    if form.validate_on_submit():
+        session = db_session.create_session()
+        job = jobs.Jobs(
+            title=form.title.data,
+            chief=form.chief.data,
+            members=form.members.data,
+            email=form.email.data
+        )
+        if current_user.__name__ is not None:
+            job.add_by = current_user.id
+        session.add(job)
+        session.commit()
+        return redirect('/')
+    return render_template('add_department.html', form=form)
 
 
 if __name__ == '__main__':

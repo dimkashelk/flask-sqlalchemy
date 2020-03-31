@@ -1,0 +1,56 @@
+{% extends "base.html" %}
+
+{% block content %}
+<style>
+    .title {
+        background-color: #b0b7ac;
+        padding: 10px;
+        text-align: center;
+    }
+
+    .work {
+        background-color: #9bd4cf;
+        padding: 10px;
+        text-align: center;
+    }
+
+    table {
+        padding: 2%;
+        min-width: 1000px;
+    }
+
+    a {
+        margin-top: 1%;
+        margin-bottom: 1%;
+    }
+</style>
+<h2 align="center">List of Departments</h2>
+<a class="btn btn-primary " href="/">Back to job</a>
+<a class="btn btn-primary " href="/add_departments">Add department</a>
+{% for dep in departments %}
+<div>
+
+    <table>
+        <tr>
+            <td class="title">Title of department</td>
+            <td class="title">Chief</td>
+            <td class="title">Members</td>
+            <td class="title">Department Email</td>
+        </tr>
+        <tr>
+            <td class="work">{{ dep.title|capitalize }}</td>
+            <td class="work">
+                {{ peoples[dep.chief - 1].name|capitalize }}
+                {{ peoples[dep.chief - 1].surname|capitalize }}
+            </td>
+            <td class="work">{{ dep.members }}</td>
+            <td class="work">{{ dep.email }}</td>
+        </tr>
+    </table>
+
+    <a class="btn btn-primary btn-warning" href="/editing_department/{{ dep.id }}">Edit</a>
+    <a class="btn btn-primary btn-danger " href="/department_delete/{{ dep.id }}">Delete</a>
+
+</div>
+{% endfor %}
+{% endblock %}

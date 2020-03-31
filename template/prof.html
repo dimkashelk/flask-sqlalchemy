@@ -39,6 +39,7 @@
 </style>
 <h2 align="center">Works log</h2>
 <a class="btn btn-primary " href="/add_job">Add job</a>
+<a class="btn btn-primary " href="/departments">See departments</a>
 {% for work in jobs %}
 <div>
     <h3>Action #{{loop.index}}</h3>
@@ -53,8 +54,8 @@
         <tr>
             <td class="work">{{ work.jod|capitalize }}</td>
             <td class="work">
-                {{ peoples[work.team_leader].name|capitalize }}
-                {{ peoples[work.team_leader].surname|capitalize }}
+                {{ peoples[work.team_leader - 1].name|capitalize }}
+                {{ peoples[work.team_leader - 1].surname|capitalize }}
             </td>
             <td class="work">{{ work.work_size }} hours</td>
             <td class="work">{{ work.collaborators }}</td>
@@ -65,10 +66,10 @@
             {% endif %}
         </tr>
     </table>
-    {% if current_user.id == 1 or current_user.id == work.add_by %}
+
     <a class="btn btn-primary btn-warning" href="/editing_job/{{ work.id }}">Edit</a>
     <a class="btn btn-primary btn-danger " href="/job_delete/{{ work.id }}">Delete</a>
-    {% endif %}
+
 </div>
 {% endfor %}
 {% endblock %}
