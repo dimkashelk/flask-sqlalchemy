@@ -15,3 +15,4 @@ class Jobs(SqlAlchemyBase):
     start_date = sqlalchemy.Column(sqlalchemy.Date)
     end_date = sqlalchemy.Column(sqlalchemy.Date)
     is_finished = sqlalchemy.Column(sqlalchemy.Boolean)
+    add_by = sqlalchemy.Column(sqlalchemy.Integer, default=1)

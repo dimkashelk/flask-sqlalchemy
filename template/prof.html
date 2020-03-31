@@ -32,8 +32,13 @@
         padding: 2%;
         min-width: 1000px;
     }
+    a {
+        margin-top: 1%;
+        margin-bottom: 1%;
+    }
 </style>
 <h2 align="center">Works log</h2>
+<a class="btn btn-primary " href="/add_job">Add job</a>
 {% for work in jobs %}
 <div>
     <h3>Action #{{loop.index}}</h3>
@@ -60,6 +65,8 @@
             {% endif %}
         </tr>
     </table>
+    <a class="btn btn-primary btn-warning" href="/editing_job/{{ work.id }}">Edit</a>
+    <a class="btn btn-primary btn-danger " href="/job_delete/{{ work.id }}">Delete</a>
 </div>
 {% endfor %}
 {% endblock %}
