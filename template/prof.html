@@ -49,6 +49,7 @@
             <td class="title">Team leader</td>
             <td class="title">Duration</td>
             <td class="title">List of collaborators</td>
+            <td class="title">Hazard category</td>
             <td class="title">is finished</td>
         </tr>
         <tr>
@@ -59,6 +60,7 @@
             </td>
             <td class="work">{{ work.work_size }} hours</td>
             <td class="work">{{ work.collaborators }}</td>
+            <td class="work">{{ work.hazard_category }}</td>
             {% if work.is_finished %}
             <td class="finished">is finished</td>
             {% elif work.is_finished == 0 %}

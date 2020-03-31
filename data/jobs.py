@@ -14,5 +14,6 @@ class Jobs(SqlAlchemyBase):
     collaborators = sqlalchemy.Column(sqlalchemy.String)
     start_date = sqlalchemy.Column(sqlalchemy.Date)
     end_date = sqlalchemy.Column(sqlalchemy.Date)
+    hazard_category = sqlalchemy.Column(sqlalchemy.Integer)
     is_finished = sqlalchemy.Column(sqlalchemy.Boolean)
     add_by = sqlalchemy.Column(sqlalchemy.Integer, default=1)
