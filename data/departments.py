@@ -1,8 +1,10 @@
 import sqlalchemy
+from flask_login import UserMixin
 from .db_session import SqlAlchemyBase
+from sqlalchemy_serializer import SerializerMixin
 
 
-class Departments(SqlAlchemyBase):
+class Departments(SqlAlchemyBase, UserMixin, SerializerMixin):
     __tablename__ = 'departments'
 
     id = sqlalchemy.Column(sqlalchemy.Integer,

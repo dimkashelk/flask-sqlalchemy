@@ -1,0 +1,7 @@
+{% extends "base.html" %}
+
+{% block content %}
+<h1 align="center">Nostalgy</h1>
+<h1 align="center">{{ name }} {{ surname }}</h1>
+<img src="{{ url_for('static', filename='map.png') }}" align="center" alt="Такого города не существует :(">
+{% endblock %}

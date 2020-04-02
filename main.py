@@ -1,12 +1,14 @@
 from flask_wtf import FlaskForm
 from flask_login import LoginManager, login_user, current_user
-from flask import Flask, render_template, redirect, request, abort
+from flask import Flask, render_template, redirect, request, \
+    abort, make_response, jsonify
 from wtforms import *
-from data import db_session, users, jobs, departments
+from data import db_session, users, jobs, departments, jobs_api, user_api
 from wtforms.validators import DataRequired
 from wtforms.fields.html5 import EmailField
+from requests import get
 
-app = Flask(__name__, template_folder='./template')
+app = Flask(__name__, template_folder='./template', static_folder='./static')
 app.config['SECRET_KEY'] = 'yandex_lyceum_secret_key'
 
 
@@ -32,6 +34,37 @@ class DepForm(FlaskForm):
     members = StringField('Сотрудники (перечисление через запятую)', validators=[DataRequired()])
     email = EmailField('Почта')
     add = SubmitField('Сохранить')
+
+
+def get_coords(place):
+    apikey = "40d1649f-0493-4b70-98ba-98533de7710b"
+    map_request = f"https://geocode-maps.yandex.ru/1.x/?geocode={place}&apikey={apikey}&format=json"
+    response = get(map_request)
+    if not response:
+        print('Try again...')
+    json_response = response.json()
+    try:
+        toponym = json_response["response"]["GeoObjectCollection"]["featureMember"][0]["GeoObject"]
+    except IndexError:
+        print('Try again...')
+    x, y = map(float, toponym["Point"]["pos"].split())
+    return x, y
+
+
+def save_picture(addr):
+    map_request = f"http://static-maps.yandex.ru/1.x/?" \
+        f"ll={','.join(map(str, get_coords(addr)))}&" \
+        f"z=12&" \
+        f"l=sat&" \
+        f"size=650,450"
+    response = get(map_request)
+    if not response:
+        print("Ошибка выполнения запроса:")
+        print(map_request)
+        print("Http статус:", response.status_code, "(", response.reason, ")")
+    map_f = f"./static/map.png"
+    with open(map_f, "wb") as file:
+        file.write(response.content)
 
 
 login_manager = LoginManager()
@@ -218,6 +251,26 @@ def add_dep():
     return render_template('add_department.html', form=form)
 
 
+@app.route('/users_show/<int:user_id>')
+def users_city(user_id):
+    try:
+        user = get(f'http://127.0.0.1:5000/api/users/{user_id}').json()['users']
+    except KeyError:
+        return 'Not found'
+    city = user['city_from']
+    name = user['name']
+    surname = user['surname']
+    save_picture(city)
+    return render_template('users_show.html', surname=surname, name=name)
+
+
+@app.errorhandler(404)
+def not_found(error):
+    return make_response(jsonify({'error': 'Not found'}), 404)
+
+
 if __name__ == '__main__':
-    db_session.global_init('db/blogs.sqlite')
+    db_session.global_init("db/blogs.sqlite")
+    app.register_blueprint(jobs_api.blueprint)
+    app.register_blueprint(user_api.blueprint)
     app.run()
