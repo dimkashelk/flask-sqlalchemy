@@ -1,15 +1,18 @@
 from flask_wtf import FlaskForm
+import flask
 from flask_login import LoginManager, login_user, current_user
 from flask import Flask, render_template, redirect, request, \
-    abort, make_response, jsonify
+    make_response, jsonify
 from wtforms import *
-from data import db_session, users, jobs, departments, jobs_api, user_api
+from data import db_session, users, jobs, departments, jobs_api, user_api, users_resource
 from wtforms.validators import DataRequired
 from wtforms.fields.html5 import EmailField
 from requests import get
+from flask_restful import reqparse, abort, Api, Resource
 
 app = Flask(__name__, template_folder='./template', static_folder='./static')
 app.config['SECRET_KEY'] = 'yandex_lyceum_secret_key'
+api = Api(app)
 
 
 class LoginForm(FlaskForm):
@@ -132,7 +135,7 @@ def edit_news(id):
             form.collaborators = job.collaborators
             form.is_finished = job.is_finished
         else:
-            abort(404)
+            flask.abort(404)
     if form.validate_on_submit():
         session = db_session.create_session()
         if current_user.__name__ is None:
@@ -150,7 +153,7 @@ def edit_news(id):
             session.commit()
             return redirect('/')
         else:
-            abort(404)
+            flask.abort(404)
     return render_template('add_job.html', form=form)
 
 
@@ -164,11 +167,11 @@ def job_delete(id):
                 session.delete(job)
                 session.commit()
             else:
-                abort(403)
+                flask.abort(403)
         else:
-            abort(403)
+            flask.abort(403)
     else:
-        abort(404)
+        flask.abort(404)
     return redirect('/')
 
 
@@ -190,11 +193,11 @@ def dep_delete(id):
                 session.delete(job)
                 session.commit()
             else:
-                abort(403)
+                flask.abort(403)
         else:
-            abort(403)
+            flask.abort(403)
     else:
-        abort(404)
+        flask.abort(404)
     return redirect('/')
 
 
@@ -210,7 +213,7 @@ def edit_dep(id):
             form.members = job.members
             form.email = job.email
         else:
-            abort(404)
+            flask.abort(404)
     if form.validate_on_submit():
         session = db_session.create_session()
         if current_user.__name__ is None:
@@ -228,7 +231,7 @@ def edit_dep(id):
             session.commit()
             return redirect('/')
         else:
-            abort(404)
+            flask.abort(404)
     return render_template('add_department.html', form=form)
 
 
@@ -264,13 +267,10 @@ def users_city(user_id):
     return render_template('users_show.html', surname=surname, name=name)
 
 
-@app.errorhandler(404)
-def not_found(error):
-    return make_response(jsonify({'error': 'Not found'}), 404)
-
-
 if __name__ == '__main__':
     db_session.global_init("db/blogs.sqlite")
+    api.add_resource(users_resource.UsersListResource, '/api/v2/users')
+    api.add_resource(users_resource.UsersResource, '/api/v2/users/<int:user_id>')
     app.register_blueprint(jobs_api.blueprint)
     app.register_blueprint(user_api.blueprint)
     app.run()
