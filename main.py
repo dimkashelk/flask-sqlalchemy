@@ -4,7 +4,8 @@ from flask_login import LoginManager, login_user, current_user
 from flask import Flask, render_template, redirect, request, \
     make_response, jsonify
 from wtforms import *
-from data import db_session, users, jobs, departments, jobs_api, user_api, users_resource
+from data import db_session, users, jobs, departments, jobs_api, user_api, \
+    users_resource, jobs_resource
 from wtforms.validators import DataRequired
 from wtforms.fields.html5 import EmailField
 from requests import get
@@ -271,6 +272,8 @@ if __name__ == '__main__':
     db_session.global_init("db/blogs.sqlite")
     api.add_resource(users_resource.UsersListResource, '/api/v2/users')
     api.add_resource(users_resource.UsersResource, '/api/v2/users/<int:user_id>')
+    api.add_resource(jobs_resource.JobsListResource, '/api/v2/jobs')
+    api.add_resource(jobs_resource.JobsResource, '/api/v2/jobs/<int:job_id>')
     app.register_blueprint(jobs_api.blueprint)
     app.register_blueprint(user_api.blueprint)
     app.run()
